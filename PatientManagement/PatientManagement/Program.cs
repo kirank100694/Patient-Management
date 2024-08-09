@@ -1,4 +1,9 @@
 
+using Microsoft.EntityFrameworkCore;
+using PatientManagement.Data;
+using PatientManagement.Helper;
+using PatientManagement.Repository;
+
 namespace PatientManagement
 {
     public class Program
@@ -9,7 +14,14 @@ namespace PatientManagement
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
+            builder.Services.AddDbContext<PatientContext>
+                (options => options.UseSqlServer(builder.Configuration.GetConnectionString("PatientManagmentDB")));
+
+            builder.Services.AddTransient<IPatientRepository, PatientRepository>();
+
+            builder.Services.AddAutoMapper(typeof(ApplicationMapper));
+
+            builder.Services.AddControllers().AddNewtonsoftJson();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
