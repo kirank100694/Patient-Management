@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.JsonPatch;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using PatientManagement.Data;
+using PatientManagement.Migrations;
 using PatientManagement.Models;
 
 namespace PatientManagement.Repository
@@ -8,58 +10,72 @@ namespace PatientManagement.Repository
     public class PatientRepository : IPatientRepository
     {
         private readonly PatientContext _patientContext;
+        private readonly IMapper _mapper;
 
-        public PatientRepository(PatientContext patientContext)
+        public PatientRepository(PatientContext patientContext, IMapper mapper)
         {
             _patientContext = patientContext;
+            _mapper = mapper;
         }
 
-        public async Task<List<Patient>> GetPatientsAsync()
+        public async Task<List<PatientModel>> GetPatients()
         {
-            return await _patientContext.Patients.ToListAsync();
+            var patients = await _patientContext.Patients.ToListAsync();
+            return _mapper.Map<List<PatientModel>>(patients);
         }
 
-        public async Task<Patient> GetPatientByIdAsync(int id)
+        public async Task<PatientModel> GetPatientsById(int patientId)
         {
-            return await _patientContext.Patients.FindAsync();
+            var patients = await _patientContext.Patients.FindAsync(patientId);
+            return _mapper.Map<PatientModel>(patients);
         }
 
-        public async Task AddPatientAsync(Patient patient)
+        public async Task<int> AddPatients(PatientModel patientModel)
         {
+            var patient = _mapper.Map<PatientModel>(patientModel);
+            patient.CreatedDate = DateTime.Now;
+
             _patientContext.Patients.Add(patient);
             await _patientContext.SaveChangesAsync();
+
+            return patient.Id;
         }
 
-        public async Task UpdatePatientAsync(Patient patient)
+        public async Task UpdatePatients(PatientModel existingPatient, PatientModel patientModel)
         {
-            _patientContext.Entry(patient).State = EntityState.Modified;
+            _mapper.Map(patientModel, existingPatient);
+
+            existingPatient.UpdatedDate = DateTime.Now;
+
             await _patientContext.SaveChangesAsync();
         }
 
-        public async Task ApplyPatchAsync(int id, JsonPatchDocument<Patient> patchDoc)
+        public async Task UpdatePatients(PatientModel existingPatient, JsonPatchDocument patientModel)
         {
-            var patient = await _patientContext.Patients.FindAsync(id);
-            if (patient == null)
-            {
-                throw new KeyNotFoundException("Patient not found.");
-            }
+            patientModel.ApplyTo(existingPatient);
 
-            patchDoc.ApplyTo(patient);
-            patient.UpdatedDate = DateTime.UtcNow;
-            _patientContext.Entry(patient).State = EntityState.Modified;
+            existingPatient.UpdatedDate = DateTime.Now;
+
             await _patientContext.SaveChangesAsync();
         }
 
-        public async Task DeletePatientAsync(int id)
+        public async Task DeletePatientsById(int patientId)
         {
-            var patient = await _patientContext.Patients.FindAsync(id);
-            if (patient != null)
-            {
-                _patientContext.Patients.Remove(patient);
-                await _patientContext.SaveChangesAsync();
-            }
+            var patient = new PatientModel() { Id = patientId };
+
+            _patientContext.Patients.Remove(patient);
+
+            await _patientContext.SaveChangesAsync();
         }
 
-        
+        public async Task<bool> IsPatientsExists(int id)
+        {
+            return await _patientContext.Patients.AnyAsync(e => e.Id == id);
+        }
+
+        public async Task<bool> IsPatientsExists(string contactNumber)
+        {
+            return await _patientContext.Patients.AnyAsync(c => c.ContactNumber == contactNumber);
+        }
     }
 }

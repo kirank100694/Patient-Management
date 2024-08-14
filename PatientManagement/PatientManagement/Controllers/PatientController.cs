@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using PatientManagement.Data;
-using PatientManagement.Models;
 using PatientManagement.Repository;
 
 namespace PatientManagement.Controllers
@@ -21,112 +20,80 @@ namespace PatientManagement.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/patients
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PatientCreateDate>>> GetPatients()
+        public async Task<IActionResult> GetPatients()
         {
-            var patients = await _patientRepository.GetPatientsAsync();
-            var patientDates = _mapper.Map<IEnumerable<PatientCreateDate>>(patients);
-            return Ok(patientDates);
+            var patients = await _patientRepository.GetPatients();
+
+            if (patients != null && patients.Count == 0)
+            {
+                return BadRequest("No patients found.");
+            }
+
+            return Ok(patients);
         }
 
-        // GET: api/patients/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Patient>> GetPatient(int id)
+        public async Task<ActionResult> GetPatientsById([FromRoute] int id)
         {
-            var patient = await _patientRepository.GetPatientByIdAsync(id);
-            if (patient == null)
+            var patients = await _patientRepository.GetPatientsById(id);
+
+            if (patients == null)
             {
-                return NotFound();
+                return BadRequest($"patient with ID {id} not found.");
             }
-            var patientData = _mapper.Map<Patient>(patient);
-            return Ok(patientData);
+            return Ok(patients);
         }
 
-        // POST: api/patients
         [HttpPost]
-        public async Task<ActionResult<PatientCreateDate>> PostPatient(PatientCreateDate patientDates)
+        public async Task<ActionResult> AddPatients([FromBody] PatientModel patientModel)
         {
-            if (!ModelState.IsValid)
+            if (await _patientRepository.IsPatientsExists(patientModel.ContactNumber))
             {
-                return BadRequest(ModelState);
+                return BadRequest("patient is already exists.");
             }
+            var id = await _patientRepository.AddPatients(patientModel);
 
-            var patient = _mapper.Map<Patient>(patientDates);
-            patient.CreatedDate = DateTime.UtcNow;
-            patient.UpdatedDate = DateTime.UtcNow;
-
-            await _patientRepository.AddPatientAsync(patient);
-            var newPatientDate = _mapper.Map<PatientCreateDate>(patient);
-
-            return CreatedAtAction(nameof(GetPatient), new { id = patient.Id }, newPatientDate);
+            return CreatedAtAction(nameof(GetPatientsById), new { id = id, Controller = "patient" }, id);
         }
 
-        // PUT: api/patients/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPatient(int id, PatientUpdateDate patientData)
+        public async Task<ActionResult> UpdatePatients([FromBody] PatientModel patientModel, [FromRoute] int id)
         {
-            if (id != patientData.Id)
-            {
-                return BadRequest();
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var patient = _mapper.Map<Patient>(patientData);
-            patient.CreatedDate = DateTime.UtcNow;  // Set CreatedDate server-side
-            patient.UpdatedDate = DateTime.UtcNow;  // Update UpdatedDate server-side
-
-            await _patientRepository.UpdatePatientAsync(patient);
-            return NoContent();
-        }
-
-        // PATCH: api/patients/{id}
-        [HttpPatch("{id}")]
-        public async Task<IActionResult> PatchPatient(int id, JsonPatchDocument<Patient> patchData)
-        {
-            if (patchData == null)
-            {
-                return BadRequest("Invalid patch document.");
-            }
-
-            var existingPatient = await _patientRepository.GetPatientByIdAsync(id);
+            var existingPatient = await _patientRepository.GetPatientsById(id);
             if (existingPatient == null)
             {
-                return NotFound();
+                return BadRequest($"Employee Id {id} is not found.");
             }
 
-            var patientData = _mapper.Map<Patient>(existingPatient);
-            patchData.ApplyTo(patientData, ModelState);
-
-            if (!TryValidateModel(patientData))
-            {
-                return ValidationProblem(ModelState);
-            }
-
-            var patient = _mapper.Map<Patient>(patientData);
-            patient.CreatedDate = existingPatient.CreatedDate;  // Preserve original CreatedDate
-            patient.UpdatedDate = DateTime.UtcNow;
-
-            await _patientRepository.ApplyPatchAsync(id, patchData);
-            return NoContent();
+            await _patientRepository.UpdatePatients(existingPatient, patientModel);
+            return Ok();
         }
 
-        // DELETE: api/patients/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePatient(int id)
+        [HttpPatch("{id}")]
+        public async Task<ActionResult> UpdatePatients([FromBody] JsonPatchDocument patientModel, [FromRoute] int id)
         {
-            var patient = await _patientRepository.GetPatientByIdAsync(id);
-            if (patient == null)
+            var existingPatient = await _patientRepository.GetPatientsById(id);
+            if (existingPatient == null)
             {
-                return NotFound();
+                return BadRequest($"Patient Id {id} is not found.");
             }
 
-            await _patientRepository.DeletePatientAsync(id);
-            return NoContent();
+            await _patientRepository.UpdatePatients(existingPatient, patientModel);
+            return Ok();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeletePatientsById(int id)
+        {
+
+            if (!await _patientRepository.IsPatientsExists(id))
+            {
+                return BadRequest($"Patient Id {id} is not found.");
+            }
+
+            await _patientRepository.DeletePatientsById(id);
+            return Ok();
         }
     }
 }

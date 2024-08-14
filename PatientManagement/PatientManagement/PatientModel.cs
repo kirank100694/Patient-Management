@@ -1,20 +1,23 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PatientManagement.Data
+namespace PatientManagement
 {
-    public class PatientUpdateDate
+    public class PatientModel
     {
-        [Required]
         public int Id { get; set; }
 
-        [StringLength(50)]
+        [Required]
+        [StringLength(50, ErrorMessage = "FirstName cannot be longer than 50 characters.")]
         public string FirstName { get; set; }
 
-        [StringLength(50)]
+        [Required]
+        [StringLength(50, ErrorMessage = "LastName cannot be longer than 50 characters.")]
         public string LastName { get; set; }
 
-        public DateTime? DateOfBirth { get; set; }
+        [Required]
+        public DateTime DateOfBirth { get; set; }
 
+        [Required]
         [StringLength(10)]
         public string Gender { get; set; }
 
@@ -22,10 +25,10 @@ namespace PatientManagement.Data
         public string ContactNumber { get; set; }
 
         [Range(0, double.MaxValue)]
-        public double? Weight { get; set; }
+        public double Weight { get; set; }
 
         [Range(0, double.MaxValue)]
-        public double? Height { get; set; }
+        public double Height { get; set; }
 
         [EmailAddress]
         public string Email { get; set; }
@@ -36,7 +39,10 @@ namespace PatientManagement.Data
         [StringLength(500)]
         public string MedicalComments { get; set; }
 
-        public bool? AnyMedicationsTaking { get; set; }
+        [Required]
+        public bool AnyMedicationsTaking { get; set; }
 
+        public DateTime CreatedDate { get; set; }
+        public DateTime UpdatedDate { get; set; }
     }
 }

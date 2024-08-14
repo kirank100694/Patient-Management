@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using PatientManagement.Data;
 using PatientManagement.Models;
 
 namespace PatientManagement.Helper
@@ -8,8 +7,7 @@ namespace PatientManagement.Helper
     {
         public ApplicationMapper()
         {
-            CreateMap<Patient, PatientCreateDate>().ReverseMap();
-            CreateMap<Patient, PatientUpdateDate>().ReverseMap();
+            CreateMap<Patient, PatientModel>().ReverseMap();
         }
     }
 }

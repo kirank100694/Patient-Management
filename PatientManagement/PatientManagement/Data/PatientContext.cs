@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PatientManagement.Models;
 using System.Collections.Generic;
 
 namespace PatientManagement.Data
@@ -10,6 +9,6 @@ namespace PatientManagement.Data
         {
         }
 
-        public DbSet<Patient> Patients { get; set; }
+        public DbSet<PatientModel> Patients { get; set; }
     }
 }

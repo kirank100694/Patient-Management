@@ -1,7 +1,5 @@
-
 using Microsoft.EntityFrameworkCore;
 using PatientManagement.Data;
-using PatientManagement.Helper;
 using PatientManagement.Repository;
 
 namespace PatientManagement
@@ -19,7 +17,7 @@ namespace PatientManagement
 
             builder.Services.AddTransient<IPatientRepository, PatientRepository>();
 
-            builder.Services.AddAutoMapper(typeof(ApplicationMapper));
+            builder.Services.AddAutoMapper(typeof(Program));
 
             builder.Services.AddControllers().AddNewtonsoftJson();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
