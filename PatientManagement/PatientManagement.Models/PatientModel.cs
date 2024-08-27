@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PatientManagement
+namespace PatientManagement.Models
 {
     public class PatientModel
     {
@@ -8,10 +9,12 @@ namespace PatientManagement
 
         [Required]
         [StringLength(50, ErrorMessage = "FirstName cannot be longer than 50 characters.")]
+        [Column(TypeName = "nVarchar(30)")]
         public string FirstName { get; set; }
 
         [Required]
         [StringLength(50, ErrorMessage = "LastName cannot be longer than 50 characters.")]
+        [Column(TypeName = "nVarchar(30)")]
         public string LastName { get; set; }
 
         [Required]
@@ -19,9 +22,12 @@ namespace PatientManagement
 
         [Required]
         [StringLength(10)]
+        [Column(TypeName = "nVarchar(10)")]
+
         public string Gender { get; set; }
 
         [Phone]
+        [Column(TypeName = "nVarchar(20)")]
         public string ContactNumber { get; set; }
 
         [Range(0, double.MaxValue)]
@@ -31,12 +37,15 @@ namespace PatientManagement
         public double Height { get; set; }
 
         [EmailAddress]
+        [Column(TypeName = "nVarchar(30)")]
         public string Email { get; set; }
 
         [StringLength(200)]
+        [Column(TypeName = "nVarchar(200)")]
         public string Address { get; set; }
 
         [StringLength(500)]
+        [Column(TypeName = "nVarchar(500)")]
         public string MedicalComments { get; set; }
 
         [Required]

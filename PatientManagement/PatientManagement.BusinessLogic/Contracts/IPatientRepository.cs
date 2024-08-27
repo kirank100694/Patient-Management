@@ -1,18 +1,18 @@
 ﻿using Microsoft.AspNetCore.JsonPatch;
-using PatientManagement.Migrations;
+using PatientManagement.Helper;
 using PatientManagement.Models;
 
 namespace PatientManagement.Repository
 {
     public interface IPatientRepository
     {
-        Task<List<PatientModel>> GetPatients();
+        Task<List<PatientModel>> GetPatients(PagingHelper pagingHelper);
 
         Task<PatientModel> GetPatientsById(int patientId);
 
         Task<int> AddPatients(PatientModel patientModel);
 
-        Task UpdatePatients(PatientModel existingPatient, PatientModel patientModel);
+        Task UpdatePatient(PatientModel existingPatient, PatientModel patientModel);
 
         Task UpdatePatients(PatientModel existingPatient, JsonPatchDocument patientModel);
 

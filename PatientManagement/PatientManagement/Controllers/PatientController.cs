@@ -1,36 +1,35 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using PatientManagement.Data;
+using PatientManagement.Helper;
+using PatientManagement.Models;
 using PatientManagement.Repository;
 
 namespace PatientManagement.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PatientController : ControllerBase
     {
         private readonly IPatientRepository _patientRepository;
-        private readonly IMapper _mapper;
 
-        public PatientController(IPatientRepository patientRepository, IMapper mapper)
+        public PatientController(IPatientRepository patientRepository)
         {
             _patientRepository = patientRepository;
-            _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetPatients()
+        public async Task<IActionResult> GetPatients([FromBody] PagingHelper pagingHelper)
         {
-            var patients = await _patientRepository.GetPatients();
+            var patirnts = await _patientRepository.GetPatients(pagingHelper);
 
-            if (patients != null && patients.Count == 0)
+            if (patirnts != null && patirnts.Count == 0)
             {
-                return BadRequest("No patients found.");
+                return BadRequest("No Patient found.");
             }
 
-            return Ok(patients);
+            return Ok(patirnts);
         }
 
         [HttpGet("{id}")]
@@ -42,6 +41,7 @@ namespace PatientManagement.Controllers
             {
                 return BadRequest($"patient with ID {id} not found.");
             }
+
             return Ok(patients);
         }
 
@@ -58,7 +58,7 @@ namespace PatientManagement.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdatePatients([FromBody] PatientModel patientModel, [FromRoute] int id)
+        public async Task<ActionResult> UpdatePatient([FromBody] PatientModel patientModel, [FromRoute] int id)
         {
             var existingPatient = await _patientRepository.GetPatientsById(id);
             if (existingPatient == null)
@@ -66,12 +66,13 @@ namespace PatientManagement.Controllers
                 return BadRequest($"Employee Id {id} is not found.");
             }
 
-            await _patientRepository.UpdatePatients(existingPatient, patientModel);
+            await _patientRepository.UpdatePatient(existingPatient, patientModel);
             return Ok();
         }
 
         [HttpPatch("{id}")]
-        public async Task<ActionResult> UpdatePatients([FromBody] JsonPatchDocument patientModel, [FromRoute] int id)
+        public async Task<ActionResult> UpdatePatients([FromBody] JsonPatchDocument patientModel, 
+            [FromRoute] int id)
         {
             var existingPatient = await _patientRepository.GetPatientsById(id);
             if (existingPatient == null)
